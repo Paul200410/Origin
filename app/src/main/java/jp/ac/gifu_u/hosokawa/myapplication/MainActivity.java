@@ -6,35 +6,35 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsCompat.Type;
-import androidx.core.view.WindowInsetsCompat.Insets;
-import androidx.core.view.EdgeToEdge;
 
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+
+        // レイアウトXMLにMyViewとボタンを定義している
         setContentView(R.layout.activity_main);
 
-        // EdgeToEdgeの設定（既存）
+        // 画面端の余白を適用（EdgeToEdge対応。なければ省略可）
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // 🔽 ここから追記：ボタンの処理を実装
+        // 終了ボタンの処理
         Button exitButton = findViewById(R.id.exitButton);
-        exitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        if (exitButton != null) {
+            exitButton.setOnClickListener(v -> {
                 Toast.makeText(MainActivity.this, "アプリを終了しました", Toast.LENGTH_SHORT).show();
                 finish();
-            }
-        });
+            });
+        }
     }
 }
+

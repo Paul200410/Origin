@@ -7,23 +7,35 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <!-- 🔵 高さ固定でMyViewを配置 -->
+    <jp.ac.gifu_u.hosokawa.myapplication.MyView
+        android:id="@+id/myView"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Hello Worldテキスト -->
     <TextView
         android:id="@+id/helloText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hello World!"
+        app:layout_constraintTop_toBottomOf="@+id/myView"
         app:layout_constraintBottom_toTopOf="@+id/exitButton"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginBottom="16dp" />
 
+    <!-- 終了ボタン -->
     <Button
         android:id="@+id/exitButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="終了"
         app:layout_constraintTop_toBottomOf="@id/helloText"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
