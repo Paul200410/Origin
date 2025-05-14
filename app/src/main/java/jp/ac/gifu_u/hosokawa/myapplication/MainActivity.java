@@ -1,40 +1,66 @@
 package jp.ac.gifu_u.hosokawa.myapplication;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.core.view.WindowInsetsCompat.Type;
+import androidx.core.app.ActivityCompat;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LocationListener {
+
+    private LocationManager locationManager;
+    private TextView locationText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // レイアウトXMLにMyViewとボタンを定義している
         setContentView(R.layout.activity_main);
 
-        // 画面端の余白を適用（EdgeToEdge対応。なければ省略可）
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        locationText = findViewById(R.id.locationText);
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+    }
 
-        // 終了ボタンの処理
-        Button exitButton = findViewById(R.id.exitButton);
-        if (exitButton != null) {
-            exitButton.setOnClickListener(v -> {
-                Toast.makeText(MainActivity.this, "アプリを終了しました", Toast.LENGTH_SHORT).show();
-                finish();
-            });
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    100);
+            return;
         }
+
+        locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                1000,
+                10,
+                this
+        );
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        locationManager.removeUpdates(this);
+    }
+
+    @Override
+    public void onLocationChanged(@NonNull Location location) {
+        double lat = location.getLatitude();
+        double lng = location.getLongitude();
+
+        String text = String.format("緯度: %.5f\n経度: %.5f", lat, lng);
+        locationText.setText(text);
+
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 }
-
