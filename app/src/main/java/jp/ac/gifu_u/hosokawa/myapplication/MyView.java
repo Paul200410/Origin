@@ -1,3 +1,4 @@
+// MyView.java
 package jp.ac.gifu_u.hosokawa.myapplication;
 
 import android.content.Context;
@@ -11,64 +12,63 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class MyView extends View {
 
-    private HashMap<Integer, ArrayList<Float>> pointerXMap;
-    private HashMap<Integer, ArrayList<Float>> pointerYMap;
+    private ArrayList<Stroke> strokes;     // 全ての線
+    private Stroke currentStroke;          // 今描いてる線
+    private String currentColor = "RED";   // 現在選ばれてる色
 
     private Bitmap bitmap;
-    private Bitmap resizedBitmap;  // リサイズ済みビットマップ
+    private Bitmap resizedBitmap;
 
     public MyView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        strokes = new ArrayList<>();
 
-        pointerXMap = new HashMap<>();
-        pointerYMap = new HashMap<>();
-
-        // 元画像を読み込み
+        // 資料通り：画像表示（サイズを調整して表示）
         bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.cat);
-
-        // ✅ 表示サイズを指定してリサイズ（ここで1回だけ作る！）
         if (bitmap != null) {
             resizedBitmap = Bitmap.createScaledBitmap(bitmap, 200, 200, true);
+        }
+    }
+
+    public void setCurrentColor(String color) {
+        currentColor = color;
+    }
+
+    private int getColorValue(String name) {
+        switch (name) {
+            case "BLUE": return Color.BLUE;
+            case "BLACK": return Color.BLACK;
+            default: return Color.RED;
         }
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
-        // 背景を白で塗りつぶす
         canvas.drawColor(Color.WHITE);
 
-        // ✅ リサイズ済みの画像を描画（左上に配置）
         if (resizedBitmap != null) {
             canvas.drawBitmap(resizedBitmap, 50, 50, null);
         }
 
-        // 線を描く
-        Paint paint = new Paint();
-        paint.setColor(Color.RED);
-        paint.setStrokeWidth(6);
-        paint.setStyle(Paint.Style.STROKE);
+        for (Stroke stroke : strokes) {
+            Paint paint = new Paint();
+            paint.setColor(stroke.color);
+            paint.setStrokeWidth(6);
+            paint.setStyle(Paint.Style.STROKE);
 
-        // 各指ごとの軌跡を描画
-        for (Integer pointerId : pointerXMap.keySet()) {
-            ArrayList<Float> xList = pointerXMap.get(pointerId);
-            ArrayList<Float> yList = pointerYMap.get(pointerId);
-
-            if (xList == null || yList == null) continue;
+            ArrayList<Float> xList = stroke.xList;
+            ArrayList<Float> yList = stroke.yList;
 
             for (int i = 1; i < xList.size(); i++) {
                 Float x1 = xList.get(i - 1);
                 Float y1 = yList.get(i - 1);
                 Float x2 = xList.get(i);
                 Float y2 = yList.get(i);
-
                 if (x1 == null || x2 == null || y1 == null || y2 == null) continue;
-
                 canvas.drawLine(x1, y1, x2, y2, paint);
             }
         }
@@ -76,45 +76,25 @@ public class MyView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        int action = event.getActionMasked();
-        int pointerIndex = event.getActionIndex();
-        int pointerId = event.getPointerId(pointerIndex);
+        float x = event.getX();
+        float y = event.getY();
 
-        switch (action) {
+        switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_POINTER_DOWN:
-                if (!pointerXMap.containsKey(pointerId)) {
-                    pointerXMap.put(pointerId, new ArrayList<>());
-                    pointerYMap.put(pointerId, new ArrayList<>());
-                }
-
-                // ✅ 線を分けるために null を入れる（ストローク区切り）
-                pointerXMap.get(pointerId).add(null);
-                pointerYMap.get(pointerId).add(null);
+                currentStroke = new Stroke(getColorValue(currentColor));
+                currentStroke.addPoint(null, null); // 区切り用
+                currentStroke.addPoint(x, y);
+                strokes.add(currentStroke);
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                for (int i = 0; i < event.getPointerCount(); i++) {
-                    int id = event.getPointerId(i);
-                    float x = event.getX(i);
-                    float y = event.getY(i);
-
-                    if (!pointerXMap.containsKey(id)) {
-                        pointerXMap.put(id, new ArrayList<>());
-                        pointerYMap.put(id, new ArrayList<>());
-                        pointerXMap.get(id).add(null);
-                        pointerYMap.get(id).add(null);
-                    }
-
-                    pointerXMap.get(id).add(x);
-                    pointerYMap.get(id).add(y);
+                if (currentStroke != null) {
+                    currentStroke.addPoint(x, y);
                 }
                 break;
 
             case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_POINTER_UP:
-            case MotionEvent.ACTION_CANCEL:
-                // データは残しておく（あとから描画できるように）
+                currentStroke = null;
                 break;
         }
 
@@ -122,5 +102,3 @@ public class MyView extends View {
         return true;
     }
 }
-
-
