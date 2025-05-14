@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">My Location App</string>
+    <string name="map_button">地図を開く</string>
 </resources>
